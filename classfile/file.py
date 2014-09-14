@@ -240,7 +240,8 @@ class classfile(object):
 
     def saveconstant(self, buf, const):
         if isinstance(const, str):
-            buf.uint8(CONSTANT_Utf8).extend(binfmt.mutf8enc(const))
+            enc = binfmt.mutf8enc(const)
+            buf.uint8(CONSTANT_Utf8).uint16(len(enc)).extend(enc)
         elif isinstance(const, classref):
             buf.uint8(CONSTANT_Class).uint16(const.nm)
         elif isinstance(const, conststr):
@@ -660,7 +661,7 @@ class classfile(object):
         buf.uint32(self.MAGIC)
         buf.uint16(self.ver.minor).uint16(self.ver.major)
 
-        buf.uint16(len(self.cp) + 1)
+        buf.uint16(len(self.cp))
         for const in self.cp:
             if const is not None:
                 self.saveconstant(buf, const)
@@ -694,7 +695,7 @@ class classfile(object):
             for inner in self.innerclasses: data.uint16(inner.cls).uint16(inner.outer).uint16(inner.nm).uint16(inner.acc)
             attrs.append((self.intern("InnerClasses"), data))
         if self.enclosingmethod is not None:
-            attrs.append((self.intern("EnclosingMethod", enc().uint16(self.enclosingmethod[0]).uint16(self.enclosingmethod[1]))))
+            attrs.append((self.intern("EnclosingMethod"), enc().uint16(self.enclosingmethod[0]).uint16(self.enclosingmethod[1])))
         if len(self.rtann) > 0:
             data = enc()
             data.uint16(len(self.rtann))
