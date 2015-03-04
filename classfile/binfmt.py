@@ -26,7 +26,7 @@ def mutf8dec(bs):
                 b = bs[i]
                 i += 1
                 if b & 0xc0 != 0x80: raise fmterror("invalid utf8 continuation byte")
-                acc = (acc << 6) | bs & 0x3f
+                acc = (acc << 6) | b & 0x3f
                 c -= 1
             if iacc == 0 and ic != 2 and acc != 0: raise fmterror("invalid utf8 compound")
             ret += chr(acc)
