@@ -101,6 +101,32 @@ class sig(object):
     def __eq__(s, o):
         return isinstance(o, sig) and o.nm == s.nm and o.tp == s.tp
 
+class methodhandle(object):
+    def __init__(self, kind, ref):
+        self.kind = kind
+        self.ref = ref
+    def __hash__(self):
+        return hash(methodhandle) + self.kind * 31 + self.ref
+    def __eq__(s, o):
+        return isinstance(o, methodhandle) and o.kind == s.kind and o.ref == s.ref
+
+class methodtype(object):
+    def __init__(self, desc):
+        self.desc = desc
+    def __hash__(self):
+        return hash(methodhandle) + self.desc
+    def __eq__(s, o):
+        return isinstance(o, methodtype) and o.desc == s.desc
+
+class callsite(object):
+    def __init__(self, boot, sig):
+        self.boot = boot
+        self.sig = sig
+    def __hash__(self):
+        return hash(callsite) + self.boot * 31 + self.sig
+    def __eq__(s, o):
+        return isinstance(o, callsite) and o.boot == s.boot and o.sig == s.sig
+
 class fieldref(object):
     def __init__(self, cls, sig):
         self.cls = cls
@@ -235,6 +261,12 @@ class classfile(object):
             return imethodref(buf.uint16(), buf.uint16()), False
         elif t == CONSTANT_NameAndType:
             return sig(buf.uint16(), buf.uint16()), False
+        elif t == CONSTANT_MethodHandle:
+            return methodhandle(buf.uint8(), buf.uint16()), False
+        elif t == CONSTANT_MethodType:
+            return methodtype(buf.uint16()), False
+        elif t == CONSTANT_InvokeDynamic:
+            return callsite(buf.uint16(), buf.uint16()), False
         else:
             raise binfmt.fmterror("unknown constant tag: " + str(t))
 
@@ -262,6 +294,12 @@ class classfile(object):
             buf.uint8(CONSTANT_InterfaceMethodref).uint16(const.cls).uint16(const.sig)
         elif isinstance(const, sig):
             buf.uint8(CONSTANT_NameAndType).uint16(const.nm).uint16(const.tp)
+        elif isinstance(const, methodhandle):
+            buf.uint8(CONSTANT_MethodHandle).uint8(const.kind).uint16(const.ref)
+        elif isinstance(const, methodtype):
+            buf.uint8(CONSTANT_MethodType).uint16(const.desc)
+        elif isinstance(const, callsite):
+            buf.uint8(CONSTANT_InvokeDynamic).uint16(const.boot).uint16(const.sig)
         else:
             raise Exception("unexpected object type in constant pool: " + const)
 
