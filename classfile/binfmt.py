@@ -93,6 +93,9 @@ class decstream(decoder):
         self.buf.extend(ret)
         return False
 
+    def tell(self):
+        return self.bk.tell() - len(self.buf)
+
     def splice(self, ln=-1):
         buf = self.buf
         if ln < 0:
