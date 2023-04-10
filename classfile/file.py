@@ -637,7 +637,7 @@ class classfile(object):
         self.super = buf.uint16()
         if not self.checkcp(self.this, classref):
             raise binfmt.fmterror("invalid class name reference")
-        if not self.checkcp(self.super, classref):
+        if not self.checkcp(self.super, classref) and self.cp[self.super] is not None:
             raise binfmt.fmterror("invalid super-class reference")
         iflen = buf.uint16()
         while len(self.ifaces) < iflen:
